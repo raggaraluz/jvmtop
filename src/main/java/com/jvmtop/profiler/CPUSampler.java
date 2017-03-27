@@ -69,17 +69,20 @@ public class CPUSampler
                                                                      0);
 
   private VMInfo                             vmInfo_;
+  
+  private boolean                             threadSplit_;
 
   /**
    * @param threadMxBean
    * @throws Exception
    */
-  public CPUSampler(VMInfo vmInfo) throws Exception
+  public CPUSampler(VMInfo vmInfo, boolean threadSplit) throws Exception
   {
     super();
     threadMxBean_ = vmInfo.getThreadMXBean();
     beginCPUTime_ = vmInfo.getProxyClient().getProcessCpuTime();
     vmInfo_ = vmInfo;
+    threadSplit_ = threadSplit;
   }
 
   public List<MethodStats> getTop(int limit)
@@ -119,10 +122,18 @@ public class CPUSampler
             if (isFiltered(stElement)) {
             continue;
           }
-          String key = stElement.getClassName() + "."
-              + stElement.getMethodName();
-          data_.putIfAbsent(key, new MethodStats(stElement.getClassName(),
-              stElement.getMethodName()));
+          String key = null;
+          if (!threadSplit_) {
+            key = stElement.getClassName() + "." + stElement.getMethodName();
+            data_.putIfAbsent(key, new MethodStats(stElement.getClassName(),
+                stElement.getMethodName()));
+          }
+          else {
+            key = stElement.getClassName() + "." + stElement.getMethodName() + "." + ti.getThreadId();
+            data_.putIfAbsent(key, new MethodStats(stElement.getClassName(),
+                stElement.getMethodName(), ti.getThreadId()));
+          }
+          
           data_.get(key).getHits().addAndGet(deltaCpuTime);
           totalThreadCPUTime_.addAndGet(deltaCpuTime);
             samplesAcquired = true;

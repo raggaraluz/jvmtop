@@ -40,14 +40,17 @@ public class VMProfileView extends AbstractConsoleView
   private CPUSampler cpuSampler_;
 
   private VMInfo     vmInfo_;
+  
+  private boolean    threadSplit_;
 
-  public VMProfileView(int vmid, Integer width) throws Exception
+  public VMProfileView(int vmid, Integer width, boolean threadSplit) throws Exception
   {
     super(width);
     LocalVirtualMachine localVirtualMachine = LocalVirtualMachine
         .getLocalVirtualMachine(vmid);
     vmInfo_ = VMInfo.processNewVM(localVirtualMachine, vmid);
-    cpuSampler_ = new CPUSampler(vmInfo_);
+    cpuSampler_ = new CPUSampler(vmInfo_, threadSplit);
+    threadSplit_ = threadSplit;
   }
 
   @Override
@@ -95,10 +98,19 @@ public class VMProfileView extends AbstractConsoleView
           / cpuSampler_.getTotal() * 100;
       if (!Double.isNaN(wallRatio))
       {
-        System.out.printf(" %6.2f%% (%9.2fs) %s()%n", wallRatio, wallRatio
-            / 100d
-            * cpuSampler_.getUpdateCount() * 0.1d,
-            shortFQN(stats.getClassName(), stats.getMethodName(), w));
+        if (!threadSplit_) {
+          System.out.printf(" %6.2f%% (%9.2fs) %s()%n", wallRatio, wallRatio
+              / 100d
+              * cpuSampler_.getUpdateCount() * 0.1d,
+              shortFQN(stats.getClassName(), stats.getMethodName(), w));
+        }
+        else {
+          System.out.printf(" %6.2f%% (%9.2fs) [%6d] %s()%n", wallRatio, wallRatio
+              / 100d
+              * cpuSampler_.getUpdateCount() * 0.1d,
+              stats.getTid(),
+              shortFQN(stats.getClassName(), stats.getMethodName(), w));
+        }
       }
     }
   }
@@ -118,7 +130,7 @@ public class VMProfileView extends AbstractConsoleView
     String line = fqn + "." + method;
     if (line.length() > size)
     {
-      line = "..." + line.substring(3, size);
+      line = "..." + line.substring(Math.max(line.length() - size - 1, 0), line.length());
     }
     return line;
   }

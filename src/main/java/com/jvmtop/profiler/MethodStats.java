@@ -35,6 +35,8 @@ public class MethodStats implements Comparable<MethodStats>
   private String        className_  = null;
 
   private String        methodName_ = null;
+  
+  private Long       tid_ = null;
 
   /**
    * @param className
@@ -46,8 +48,19 @@ public class MethodStats implements Comparable<MethodStats>
     className_ = className;
     methodName_ = methodName;
   }
-
-
+  
+  /**
+   * @param className
+   * @param methodName
+   */
+  public MethodStats(String className, String methodName, Long threadId)
+  {
+    super();
+    className_ = className;
+    methodName_ = methodName;
+    tid_ = threadId;
+  }
+  
   @Override
   public int hashCode()
   {
@@ -100,6 +113,17 @@ public class MethodStats implements Comparable<MethodStats>
     {
       return false;
     }
+    if (tid_ == null)
+    {
+      if (other.tid_ != null)
+      {
+        return false;
+      }
+    }
+    else if (!tid_.equals(other.tid_))
+    {
+      return false;
+    }
     return true;
   }
 
@@ -127,6 +151,22 @@ public class MethodStats implements Comparable<MethodStats>
   public String getMethodName()
   {
     return methodName_;
+  }
+
+  /**
+   * @return the tid
+   */
+  public Long getTid()
+  {
+    return tid_;
+  }
+
+  /**
+   * @param tid the tid to set
+   */
+  public void setTid(Long tid)
+  {
+    tid_ = tid;
   }
 
 

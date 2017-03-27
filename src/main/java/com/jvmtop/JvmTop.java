@@ -91,6 +91,7 @@ public class JvmTop
             "delay between each output iteration").withRequiredArg()
         .ofType(Double.class);
     parser.accepts("profile", "start CPU profiling at the specified jvm");
+    parser.accepts("threads", "together with profile option, keeps thread level information");
     parser.accepts("sysinfo", "outputs diagnostic information");
     parser.accepts("verbose", "verbose mode");
     parser.accepts("threadlimit",
@@ -141,6 +142,8 @@ public class JvmTop
     double delay = 1.0;
 
     boolean profileMode = a.has("profile");
+    
+    boolean threadSplit = a.has("threads");
 
     Integer iterations = a.has("once") ? 1 : -1;
 
@@ -219,7 +222,7 @@ public class JvmTop
       {
         if (profileMode)
         {
-          jvmTop.run(new VMProfileView(pid, width));
+          jvmTop.run(new VMProfileView(pid, width, threadSplit));
         }
         else
         {
